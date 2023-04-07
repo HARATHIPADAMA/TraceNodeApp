@@ -1,0 +1,40 @@
+
+
+CREATE COMPUTE MODULE Tracenode_Compute
+	CREATE FUNCTION Main() RETURNS BOOLEAN
+	BEGIN
+		-- CALL CopyMessageHeaders();
+		-- CALL CopyEntireMessage();
+		DECLARE inRef REFERENCE TO InputRoot.XMLNSC.MOBILY_BSL_SR.SR_HEADER;
+		
+		CREATE FIELD OutputRoot.XMLNSC.MOBILY_SF_SR.SR_SF_HEADER;
+		DECLARE outRef REFERENCE TO OutputRoot.XMLNSC.MOBILY_SF_SR.SR_SF_HEADER;
+		
+		SET outRef.MsgFormate							=LOWER(inRef.MsgFormate);
+		SET outRef.MsgVersion							= '0026'; 
+		SET outRef.RequestorUserID						= inRef.RequestorUserID;
+		SET outRef.RequestorChannelID					= inRef.RequestorChannelID;
+		SET outRef.RequestorLanguage					= inRef.RequestorLanguage;
+		SET outRef.RequestorChannelFunction				= UPPER(inRef.RequestorChannelFunction);
+		SET outRef.RequestorSecurityInfo				= inRef.RequestorSecurityInfo;
+		SET outRef.ChannelTransformationID				= inRef.ChannelTransformationID;
+		SET outRef.SrDate								=SUBSTRING(inRef.SrDate FROM 1 FOR 4)||'-'||SUBSTRING(inRef.SrDate FROM 5 FOR 2)||'-'||SUBSTRING(inRef.SrDate FROM 7 FOR 2)||'T'||
+		SUBSTRING(inRef.SrDate FROM 9 FOR 2)||':'||SUBSTRING(inRef.SrDate FROM 11 FOR 2)||':'||SUBSTRING(inRef.SrDate FROM 13 FOR 2);
+		SET OutputRoot.XMLNSC.MOBILY_SF_SR.Linenumber	= InputRoot.XMLNSC.MOBILY_BSL_SR.MSISDN;
+		RETURN TRUE;
+	END;
+
+	CREATE PROCEDURE CopyMessageHeaders() BEGIN
+		DECLARE I INTEGER 1;
+		DECLARE J INTEGER;
+		SET J = CARDINALITY(InputRoot.*[]);
+		WHILE I < J DO
+			SET OutputRoot.*[I] = InputRoot.*[I];
+			SET I = I + 1;
+		END WHILE;
+	END;
+
+	CREATE PROCEDURE CopyEntireMessage() BEGIN
+		SET OutputRoot = InputRoot;
+	END;
+END MODULE;
